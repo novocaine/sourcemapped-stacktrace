@@ -35,6 +35,12 @@
 
     var fetcher = new Fetcher(done);
 
+    fetcher.done = function() {
+      var result = [lines[0]].concat(
+        processSourceMaps(lines, rows, fetcher.mapForUri)).join("\n");
+      done(result);
+    };
+
     // (skip first line containing exception message)
     for (var i=1; i < lines.length; i++) {
       var fields = lines[i].match(/^ +at.+\((.*):([0-9]+):([0-9]+)/);
@@ -44,12 +50,6 @@
         fetcher.fetchScript(uri);
       }
     }
-
-    fetcher.done = function() {
-      var result = [lines[0]].concat(
-        processSourceMaps(lines, rows, fetcher.mapForUri)).join("\n");
-      done(result);
-    };
   };
 
   var Fetcher = function(done) {
