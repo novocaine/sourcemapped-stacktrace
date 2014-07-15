@@ -33,13 +33,11 @@
     var mapForUri = {};
     var rows = {};
 
-    var fetcher = new Fetcher(done);
-
-    fetcher.done = function() {
+    var fetcher = new Fetcher(function() {
       var result = [lines[0]].concat(
         processSourceMaps(lines, rows, fetcher.mapForUri)).join("\n");
       done(result);
-    };
+    });
 
     // (skip first line containing exception message)
     for (var i=1; i < lines.length; i++) {
