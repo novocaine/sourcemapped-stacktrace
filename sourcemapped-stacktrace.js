@@ -2,7 +2,7 @@
  * sourcemapped-stacktrace.js
  * created by James Salter <iteration@gmail.com> (2014)
  *
- * http://github.com/novocaine/sourcemapped-stacktrace
+ * https://github.com/novocaine/sourcemapped-stacktrace
  *
  * depends on window.sourceMap being populated with Mozilla's
  * source-map library https://github.com/mozilla/source-map/
@@ -15,7 +15,7 @@
       define(factory);
   } else {
       // Browser globals
-      global.transformStackTrace = factory();
+      global.mapStackTrace = factory().mapStackTrace;
   }
 }(this, function() {
   /**
