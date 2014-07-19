@@ -15,6 +15,8 @@ http://novocaine.github.io/sourcemapped-stacktrace/smst.html
 
 ## Setup
 
+Include the cut-down lib/source-map.js (the [Mozilla source-map library](https://github.com/mozilla/source-map/) into your page.
+
 Include sourcemapped-stacktrace into your page using either an AMD module
 loader or a plain old script include. As an AMD module it exposes the method
 'mapStackTrace'. If an AMD loader is not found this function will be set on
