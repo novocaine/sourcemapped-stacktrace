@@ -80,7 +80,9 @@
       return;
     }
 
-    if (e.target.status === 200) {
+    if (e.target.status === 200 || 
+      (uri.slice(0, 7) === "file://" && e.target.status === 0))
+    {
       // find .map in file
       var match = e.target.responseText.match("//# sourceMappingURL=(.*)");
       if (match && match.length === 2) {
@@ -105,8 +107,9 @@
         xhrMap.onreadystatechange = function() {
           if (xhrMap.readyState === 4) {
             that.sem--;
-            if (xhrMap.status === 200) {
-              that.mapForUri[uri] = xhrMap.responseText;    
+            if (xhrMap.status === 200 ||
+              (mapUri.slice(0, 7) === "file://" && xhrMap.status === 0)) {
+              that.mapForUri[uri] = xhrMap.responseText;
             }
             if (that.sem === 0) {
               that.done(that.mapForUri);
@@ -159,7 +162,7 @@
   var formatOriginalPosition = function(source, line, column, name) {
     // mimic chrome's format
     return "    at " + (name ? name : "(unknown)") + 
-      " (" + source + ":" + line + ":" + column;
+      " (" + source + ":" + line + ":" + column + ")";
   };
 
   // xmlhttprequest boilerplate

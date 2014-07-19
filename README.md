@@ -1,11 +1,52 @@
 This is a simple module for applying source maps to JS stack traces in the browser. 
 
-## tldr; 
+## The problem this solves
 
 You have Error.stack() in JS (maybe you're logging a trace, or you're looking at
 traces in Jasmine or Mocha), and you need to apply a sourcemap so you can
 understand whats happening because you're using some fancy compiled-to-js thing
-like coffeescript or traceur. This is the library you are looking for.
+like coffeescript or traceur. Unfortunately, the browser only applies sourcemaps when the
+trace is viewed in its console, not to the underlying stack object, so you're
+out of luck.
+
+## Demo
+
+http://novocaine.github.io/sourcemapped-stacktrace/smst.html
+
+## Setup
+
+Include sourcemapped-stacktrace into your page using either an AMD module
+loader or a plain old script include. As an AMD module it exposes the method
+'mapStackTrace'. If an AMD loader is not found this function will be set on
+window.mapStackTrace.
+
+## API 
+
+### mapStackTrace(stack, done)
+
+Re-map entries in a stacktrace using sourcemaps if available.
+
+**Arguments:**
+
+*stack*: Array of strings from the browser's stack representation. Currently only Chrome 
+format is supported.
+
+*done*: Callback invoked with the transformed stacktrace an Array of Strings) passed as the first argument
+
+## Example
+
+```javascript
+try {
+  // break something
+  bork();
+} catch (e) {
+  // pass e.stack to window.mapStackTrace
+  window.mapStackTrace(e.stack, function(mappedStack) {
+    // do what you want with mappedStack here
+    console.log(mappedStack);
+  });
+}
+```
 
 ## Longer Explanation
 
@@ -20,12 +61,10 @@ work in browsers that don't support sourcemaps, which could be good for
 logging and debugging problems. Currently, only Chrome is supported, but it
 would be easy to support those formats by ripping off [stacktrace.js](https://github.com/stacktracejs/stacktrace.js/).
 
-## Demo
-
-TODO
-
 ## Known issues
 
 * Doesn't support exception formats of any browser other than Chrome
 * Only supports JS containing //# sourceMappingURL= declarations (i.e. no
   support for the SourceMap: HTTP header (yet)
+* Some prominent sourcemap generators (including CoffeeScript and Traceur)
+  don't emit a list of 'names' in the source-map, which means that frames from transpiled code will have (unknown) instead of the original function name. Those generators should support this feature better.
