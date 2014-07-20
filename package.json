@@ -7,7 +7,6 @@
   "main": "sourcemapped-stacktrace.js",
   "description": "This is a simple module for applying source maps to JS stack traces in the browser.",
   "dependencies": {
-    "stackinfo": "fresheneesz/stackinfo.git#619f55b85e",
     "source-map": "0.1.37"
   },
   "devDependencies": {
