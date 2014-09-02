@@ -16,12 +16,12 @@ define(['./node_modules/source-map/lib/source-map/source-map-consumer'],
 function(source_map_consumer) {
   /**
    * Re-map entries in a stacktrace using sourcemaps if available.
-   * 
+   *
    * @param {Array} stack - Array of strings from the browser's stack
-   *                        representation. Currently only Chrome 
+   *                        representation. Currently only Chrome
    *                        format is supported.
    * @param {function} done - Callback invoked with the transformed stacktrace
-   *                          (an Array of Strings) passed as the first 
+   *                          (an Array of Strings) passed as the first
    *                          argument
    */
   var mapStackTrace = function(stack, done) {
@@ -76,11 +76,11 @@ function(source_map_consumer) {
       return;
     }
 
-    if (e.target.status === 200 || 
+    if (e.target.status === 200 ||
       (uri.slice(0, 7) === "file://" && e.target.status === 0))
     {
       // find .map in file
-      var match = e.target.responseText.match("//# sourceMappingURL=(.*)");
+      var match = e.target.responseText.match("//# sourceMappingURL=(.*)$");
       if (match && match.length === 2) {
         // get the map
         var mapUri = match[1];
@@ -144,7 +144,7 @@ function(source_map_consumer) {
         var smc = new source_map_consumer.SourceMapConsumer(map);
         var origPos = smc.originalPositionFor(
           { line: parseInt(row[2], 10), column: parseInt(row[3], 10) });
-        result.push(formatOriginalPosition(origPos.source, 
+        result.push(formatOriginalPosition(origPos.source,
           origPos.line, origPos.column, origPos.name));
       } else {
         // reformat unchanged line for consistency
@@ -157,7 +157,7 @@ function(source_map_consumer) {
 
   var formatOriginalPosition = function(source, line, column, name) {
     // mimic chrome's format
-    return "    at " + (name ? name : "(unknown)") + 
+    return "    at " + (name ? name : "(unknown)") +
       " (" + source + ":" + line + ":" + column + ")";
   };
 
