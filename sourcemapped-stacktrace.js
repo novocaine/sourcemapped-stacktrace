@@ -85,36 +85,43 @@ function(source_map_consumer) {
         // get the map
         var mapUri = match[1];
 
-        if (!absUrlRegex.test(mapUri)) {
-          // relative url; according to sourcemaps spec is 'source origin'
-          var origin;
-          var lastSlash = uri.lastIndexOf('/');
-          if (lastSlash !== -1) {
-            origin = uri.slice(0, lastSlash + 1);
-            mapUri = origin + mapUri;
-            // note if lastSlash === -1, actual script uri has no slash
-            // somehow, so no way to use it as a prefix... we give up and try
-            // as absolute
+        var embeddedSourceMap = mapUri.match("data:application/json;base64,(.*)");
+
+        if (embeddedSourceMap && embeddedSourceMap[1]) {
+          this.mapForUri[uri] = atob(embeddedSourceMap[1]);
+          this.done(this.mapForUri);
+        } else {
+          if (!absUrlRegex.test(mapUri)) {
+            // relative url; according to sourcemaps spec is 'source origin'
+            var origin;
+            var lastSlash = uri.lastIndexOf('/');
+            if (lastSlash !== -1) {
+              origin = uri.slice(0, lastSlash + 1);
+              mapUri = origin + mapUri;
+              // note if lastSlash === -1, actual script uri has no slash
+              // somehow, so no way to use it as a prefix... we give up and try
+              // as absolute
+            }
           }
+
+          var xhrMap = createXMLHTTPObject();
+          var that = this;
+          xhrMap.onreadystatechange = function() {
+            if (xhrMap.readyState === 4) {
+              that.sem--;
+              if (xhrMap.status === 200 ||
+                (mapUri.slice(0, 7) === "file://" && xhrMap.status === 0)) {
+                that.mapForUri[uri] = xhrMap.responseText;
+              }
+              if (that.sem === 0) {
+                that.done(that.mapForUri);
+              }
+            }
+          };
+
+          xhrMap.open("GET", mapUri, true);
+          xhrMap.send();
         }
-
-        var xhrMap = createXMLHTTPObject();
-        var that = this;
-        xhrMap.onreadystatechange = function() {
-          if (xhrMap.readyState === 4) {
-            that.sem--;
-            if (xhrMap.status === 200 ||
-              (mapUri.slice(0, 7) === "file://" && xhrMap.status === 0)) {
-              that.mapForUri[uri] = xhrMap.responseText;
-            }
-            if (that.sem === 0) {
-              that.done(that.mapForUri);
-            }
-          }
-        };
-
-        xhrMap.open("GET", mapUri, true);
-        xhrMap.send();
       } else {
         // no map
         this.sem--;
