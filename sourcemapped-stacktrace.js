@@ -25,27 +25,51 @@ function(source_map_consumer) {
    *                          argument
    */
   var mapStackTrace = function(stack, done) {
-    var lines = stack.split("\n");
+    var lines;
     var mapForUri = {};
     var rows = {};
+    var fields;
+    var uri;
+    var expected_fields;
+    var regex;
 
     var fetcher = new Fetcher(function() {
-      var result = [lines[0]].concat(
-        processSourceMaps(lines, rows, fetcher.mapForUri)).join("\n");
+      var result = processSourceMaps(lines, rows, fetcher.mapForUri);
       done(result);
     });
 
-    // (skip first line containing exception message)
-    for (var i=1; i < lines.length; i++) {
-      var fields = lines[i].match(/^ +at.+\((.*):([0-9]+):([0-9]+)/);
-      if (fields.length === 4) {
+    if (isChrome()) {
+      regex = /^ +at.+\((.*):([0-9]+):([0-9]+)/;
+      expected_fields = 4;
+      // (skip first line containing exception message)
+      skip_lines = 1;
+    } else if (isFirefox()) {
+      regex = /@(.*):([0-9]+):([0-9]+)/;
+      expected_fields = 4;
+      skip_lines = 0;
+    } else {
+      throw new Error("unknown browser :(");
+    }
+
+    lines = stack.split("\n").slice(skip_lines);
+
+    for (var i=0; i < lines.length; i++) {
+      fields = lines[i].match(regex);
+      if (fields && fields.length === expected_fields) {
         rows[i] = fields;
-        var uri = fields[1], line = parseInt(fields[2]), col = parseInt(fields[3], 10);
+        uri = fields[1];
         fetcher.fetchScript(uri);
       }
     }
   };
 
+  var isChrome = function() {
+    return navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+  };
+  
+  var isFirefox = function() {
+    return navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+  };
   var Fetcher = function(done) {
     this.sem = 0;
     this.mapForUri = {};
@@ -79,8 +103,11 @@ function(source_map_consumer) {
     if (e.target.status === 200 ||
       (uri.slice(0, 7) === "file://" && e.target.status === 0))
     {
-      // find .map in file
-      var match = e.target.responseText.match("//# sourceMappingURL=(.*)$");
+      // find .map in file.
+      //
+      // attempt to find it at the very end of the file, but tolerate trailing
+      // whitespace inserted by some packers.
+      var match = e.target.responseText.match("//# sourceMappingURL=(.*)[\\s]*$", "m");
       if (match && match.length === 2) {
         // get the map
         var mapUri = match[1];
@@ -139,22 +166,29 @@ function(source_map_consumer) {
   var processSourceMaps = function(lines, rows, mapForUri) {
     var result = [];
     var map;
-    for (var i=1; i < lines.length; i++) {
+    for (var i=0; i < lines.length; i++) {
       var row = rows[i];
       if (row) {
         var uri = row[1];
+        var line = parseInt(row[2], 10);
+        var column = parseInt(row[3], 10);
         map = mapForUri[uri];
-      }
 
-      if (map) {
-        // from source-map library
-        var smc = new source_map_consumer.SourceMapConsumer(map);
-        var origPos = smc.originalPositionFor(
-          { line: parseInt(row[2], 10), column: parseInt(row[3], 10) });
-        result.push(formatOriginalPosition(origPos.source,
-          origPos.line, origPos.column, origPos.name));
+        if (map) {
+          // we think we have a map for that uri. call source-map library
+          var smc = new source_map_consumer.SourceMapConsumer(map);
+          var origPos = smc.originalPositionFor(
+            { line: line, column: column });
+          result.push(formatOriginalPosition(origPos.source,
+            origPos.line, origPos.column, origPos.name));
+        } else {
+          // we can't find a map for that url, but we parsed the row.
+          // reformat unchanged line for consistency with the sourcemapped
+          // lines.
+          result.push(formatOriginalPosition(uri, line, column, "(unknown)"));
+        }
       } else {
-        // reformat unchanged line for consistency
+        // we weren't able to parse the row, push back what we were given
         result.push(lines[i]);
       }
     }
