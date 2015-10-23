@@ -37,7 +37,7 @@ Re-map entries in a stacktrace using sourcemaps if available.
 **Arguments:**
 
 *stack*: Array of strings from the browser's stack representation. Currently only Chrome 
-format is supported.
+and Firefox format is supported.
 
 *done*: Callback invoked with the transformed stacktrace an Array of Strings) passed as the first argument
 
@@ -66,13 +66,14 @@ server, then uses the [Mozilla source-map library](https://github.com/mozilla/so
 
 The nice part about doing it ourselves is that the library could be extended to
 work in browsers that don't support sourcemaps, which could be good for
-logging and debugging problems. Currently, only Chrome is supported, but it
+logging and debugging problems. Currently, only Chrome and Firefox are supported, but it
 would be easy to support those formats by ripping off [stacktrace.js](https://github.com/stacktracejs/stacktrace.js/).
 
 ## Known issues
 
-* Doesn't support exception formats of any browser other than Chrome
+* Doesn't support exception formats of any browser other than Chrome and
+  Firefox
 * Only supports JS containing //# sourceMappingURL= declarations (i.e. no
   support for the SourceMap: HTTP header (yet)
-* Some prominent sourcemap generators (including CoffeeScript and Traceur)
+* Some prominent sourcemap generators (including CoffeeScript, Traceur, Babel)
   don't emit a list of 'names' in the source-map, which means that frames from transpiled code will have (unknown) instead of the original function name. Those generators should support this feature better.
