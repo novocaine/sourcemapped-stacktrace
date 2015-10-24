@@ -20,6 +20,12 @@ loader or a plain old script include. As an AMD module it exposes the method
 'mapStackTrace'. If an AMD loader is not found this function will be set on
 window.sourceMappedStackTrace.mapStackTrace.
 
+## Install from npm
+
+```
+npm install sourcemapped-stacktrace -g
+```
+
 ## Build from source
 
 ```
