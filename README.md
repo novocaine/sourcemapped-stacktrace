@@ -11,22 +11,23 @@ out of luck.
 
 ## Demo
 
-http://novocaine.github.io/sourcemapped-stacktrace/smst.html
+http://novocaine.github.io/sourcemapped-stacktrace-demo/public_html/smst.html
 
 ## Setup
-
-The latest built source is in dist/sourcemapped-stacktrace.js.
 
 Include sourcemapped-stacktrace.js into your page using either an AMD module
 loader or a plain old script include. As an AMD module it exposes the method
 'mapStackTrace'. If an AMD loader is not found this function will be set on
 window.sourceMappedStackTrace.mapStackTrace.
 
-## Build
+## Build from source
 
 ```
-webpack
+npm install
 ```
+
+This pulls in necessary dependencies from NPM and will run `webpack` to build
+the script to dist/sourcemapped-stacktrace.js.
 
 ## API 
 
