@@ -39,7 +39,7 @@ Re-map entries in a stacktrace using sourcemaps if available.
 *stack*: Array of strings from the browser's stack representation. Currently only Chrome 
 and Firefox format is supported.
 
-*done*: Callback invoked with the transformed stacktrace an Array of Strings) passed as the first argument
+*done*: Callback invoked with the transformed stacktrace (an Array of Strings) passed as the first argument
 
 ## Example
 
@@ -51,7 +51,7 @@ try {
   // pass e.stack to window.mapStackTrace
   window.mapStackTrace(e.stack, function(mappedStack) {
     // do what you want with mappedStack here
-    console.log(mappedStack);
+    console.log(mappedStack.join("\n"));
   });
 }
 ```

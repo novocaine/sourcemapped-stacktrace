@@ -1,6 +1,6 @@
 {
   "name": "sourcemapped-stacktrace",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "homepage": "https://github.com/novocaine/sourcemapped-stacktrace",
   "license": "BSD-3-Clause",
   "author": { "name": "James Salter", "email": "iteration@gmail.com" },
