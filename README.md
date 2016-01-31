@@ -13,18 +13,18 @@ out of luck.
 
 http://novocaine.github.io/sourcemapped-stacktrace-demo/public_html/smst.html
 
+## Install from npm
+
+```
+npm install sourcemapped-stacktrace
+```
+
 ## Setup
 
 Include sourcemapped-stacktrace.js into your page using either an AMD module
 loader or a plain old script include. As an AMD module it exposes the method
 'mapStackTrace'. If an AMD loader is not found this function will be set on
 window.sourceMappedStackTrace.mapStackTrace.
-
-## Install from npm
-
-```
-npm install sourcemapped-stacktrace
-```
 
 ## API 
 
