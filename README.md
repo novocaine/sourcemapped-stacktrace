@@ -23,17 +23,8 @@ window.sourceMappedStackTrace.mapStackTrace.
 ## Install from npm
 
 ```
-npm install sourcemapped-stacktrace -g
+npm install sourcemapped-stacktrace
 ```
-
-## Build from source
-
-```
-npm install
-```
-
-This pulls in necessary dependencies from NPM and will run `webpack` to build
-the script to dist/sourcemapped-stacktrace.js.
 
 ## API 
 
