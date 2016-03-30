@@ -1,10 +1,10 @@
 {
   "name": "sourcemapped-stacktrace",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "homepage": "https://github.com/novocaine/sourcemapped-stacktrace",
   "license": "BSD-3-Clause",
   "author": { "name": "James Salter", "email": "iteration@gmail.com" },
-  "main": "sourcemapped-stacktrace.js",
+  "main": "dist/sourcemapped-stacktrace.js",
   "description": "A simple module for applying source maps to JS stack traces in the browser.",
   "dependencies": {
     "source-map": "0.1.37"
