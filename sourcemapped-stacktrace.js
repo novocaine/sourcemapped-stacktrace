@@ -58,7 +58,7 @@ function(source_map_consumer) {
       if (fields && fields.length === expected_fields) {
         rows[i] = fields;
         uri = fields[1];
-        if (!uri.match(/anonymous/)) {
+        if (!uri.match(/<anonymous>/)) {
           fetcher.fetchScript(uri);
         }
       }
@@ -109,7 +109,7 @@ function(source_map_consumer) {
       //
       // attempt to find it at the very end of the file, but tolerate trailing
       // whitespace inserted by some packers.
-      var match = e.target.responseText.match("//# +sourceMappingURL=(.*)[\\s]*$", "m");
+      var match = e.target.responseText.match("//# [s]ourceMappingURL=(.*)[\\s]*$", "m");
       if (match && match.length === 2) {
         // get the map
         var mapUri = match[1];
