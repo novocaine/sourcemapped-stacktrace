@@ -59,7 +59,7 @@ function(source_map_consumer) {
 
     for (var i=0; i < lines.length; i++) {
       line = lines[i];
-      if ( opts && !opts.filter(line) ) continue;
+      if ( opts && opts.filter && !opts.filter(line) ) continue;
       
       fields = line.match(regex);
       if (fields && fields.length === expected_fields) {
