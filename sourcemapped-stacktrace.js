@@ -23,9 +23,13 @@ function(source_map_consumer) {
    * @param {function} done - Callback invoked with the transformed stacktrace
    *                          (an Array of Strings) passed as the first
    *                          argument
+   * @param {Object} [opts] - Optional options object.
+   * @param {Function} [opts.filter] - Filter function applied to each stackTrace line.
+   *                                   Lines which do not pass the filter won't be processesd.
    */
-  var mapStackTrace = function(stack, done) {
+  var mapStackTrace = function(stack, done, opts) {
     var lines;
+    var line;
     var mapForUri = {};
     var rows = {};
     var fields;
@@ -54,7 +58,10 @@ function(source_map_consumer) {
     lines = stack.split("\n").slice(skip_lines);
 
     for (var i=0; i < lines.length; i++) {
-      fields = lines[i].match(regex);
+      line = lines[i];
+      if ( opts && !opts.filter(line) ) continue;
+      
+      fields = line.match(regex);
       if (fields && fields.length === expected_fields) {
         rows[i] = fields;
         uri = fields[1];

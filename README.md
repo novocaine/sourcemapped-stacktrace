@@ -31,16 +31,21 @@ window.sourceMappedStackTrace.mapStackTrace.
 
 ## API 
 
-### mapStackTrace(stack, done)
+### mapStackTrace(stack, done [, opts])
 
 Re-map entries in a stacktrace using sourcemaps if available.
 
 **Arguments:**
 
-*stack*: Array of strings from the browser's stack representation. Currently only Chrome 
+- *stack*: Array of strings from the browser's stack representation. Currently only Chrome 
 and Firefox format is supported.
 
-*done*: Callback invoked with the transformed stacktrace (an Array of Strings) passed as the first argument
+- *done*: Callback invoked with the transformed stacktrace (an Array of Strings) passed as the first argument
+
+- *opts*: Optional options object containing:
+  - *filter*: Function that filters each stackTrace line.
+              It is invoked with _(line)_ and should return truthy/ falsy value.
+              Sources which do not pass the filter won't be processed.
 
 ## Example
 
@@ -53,6 +58,11 @@ try {
   window.mapStackTrace(e.stack, function(mappedStack) {
     // do what you want with mappedStack here
     console.log(mappedStack.join("\n"));
+  }, {
+    filter: function (line) {
+      // process only sources containing `spec.js`
+      return /(spec\.js)/.test(line);
+    }
   });
 }
 ```
