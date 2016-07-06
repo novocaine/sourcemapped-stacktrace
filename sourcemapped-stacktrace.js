@@ -12,7 +12,7 @@
 
 // note we only include source-map-consumer, not the whole source-map library,
 // which includes gear for generating source maps that we don't need
-define(['./node_modules/source-map/lib/source-map/source-map-consumer'],
+define(['./node_modules/source-map/lib/source-map-consumer'],
 function(source_map_consumer) {
   /**
    * Re-map entries in a stacktrace using sourcemaps if available.
@@ -68,7 +68,7 @@ function(source_map_consumer) {
   var isChrome = function() {
     return navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
   };
-  
+
   var isFirefox = function() {
     return navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
   };
