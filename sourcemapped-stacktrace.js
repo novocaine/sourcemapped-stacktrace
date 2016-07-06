@@ -182,12 +182,12 @@ function(source_map_consumer) {
           var origPos = smc.originalPositionFor(
             { line: line, column: column });
           result.push(formatOriginalPosition(origPos.source,
-            origPos.line, origPos.column, origPos.name || String(row[0]).replace(/ +at +([^ ]*).*/, '$1')));
+            origPos.line, origPos.column, origPos.name || origName(lines[i])));
         } else {
           // we can't find a map for that url, but we parsed the row.
           // reformat unchanged line for consistency with the sourcemapped
           // lines.
-          result.push(formatOriginalPosition(uri, line, column, "(unknown)"));
+          result.push(formatOriginalPosition(uri, line, column, origName(lines[i])));
         }
       } else {
         // we weren't able to parse the row, push back what we were given
@@ -197,6 +197,13 @@ function(source_map_consumer) {
 
     return result;
   };
+
+  function origName(origLine) {
+    var match = String(origLine).match(isChrome() ?
+      / +at +([^ ]*).*/ :
+      /([^@]*)@.*/);
+    return match && match[1];
+  }
 
   var formatOriginalPosition = function(source, line, column, name) {
     // mimic chrome's format
