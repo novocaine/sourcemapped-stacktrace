@@ -43,10 +43,12 @@ and Firefox format is supported.
 - *done*: Callback invoked with the transformed stacktrace (an Array of Strings) passed as the first argument
 
 - *opts*: Optional options object containing:
-  - *filter*: Function that filters each stackTrace line.
+  - *filter*: Function that filters each stacktrace line.
               It is invoked with _(line)_ and should return truthy/ falsy value.
               Sources which do not pass the filter won't be processed.
-
+  - *cacheGlobally*: Boolean. If `true`, sourcemaps are cached across multiple `mapStackTrace()` calls,
+                     allowing for better performance if called repeatedly, or when browser's cache is disabled.
+                     Defaults to `false`.
 ## Example
 
 ```javascript
