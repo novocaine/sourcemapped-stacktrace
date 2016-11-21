@@ -121,10 +121,10 @@ function(source_map_consumer) {
         // get the map
         var mapUri = match[1];
 
-        var embeddedSourceMap = mapUri.match("data:application/json;base64,(.*)");
+        var embeddedSourceMap = mapUri.match("data:application/json;(charset=[^;]+;)?base64,(.*)");
 
-        if (embeddedSourceMap && embeddedSourceMap[1]) {
-          this.mapForUri[uri] = atob(embeddedSourceMap[1]);
+        if (embeddedSourceMap && embeddedSourceMap[2]) {
+          this.mapForUri[uri] = atob(embeddedSourceMap[2]);
           this.done(this.mapForUri);
         } else {
           if (!absUrlRegex.test(mapUri)) {
