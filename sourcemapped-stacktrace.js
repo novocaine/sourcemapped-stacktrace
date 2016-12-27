@@ -14,6 +14,9 @@
 // which includes gear for generating source maps that we don't need
 define(['source-map/lib/source-map-consumer'],
 function(source_map_consumer) {
+
+  var global_mapForUri = {};
+
   /**
    * Re-map entries in a stacktrace using sourcemaps if available.
    *
@@ -26,6 +29,7 @@ function(source_map_consumer) {
    * @param {Object} [opts] - Optional options object.
    * @param {Function} [opts.filter] - Filter function applied to each stackTrace line.
    *                                   Lines which do not pass the filter won't be processesd.
+   * @param {boolean} [opts.cacheGlobally] - Whether to cache sourcemaps globally across multiple calls.
    */
   var mapStackTrace = function(stack, done, opts) {
     var lines;
@@ -40,7 +44,7 @@ function(source_map_consumer) {
     var fetcher = new Fetcher(function() {
       var result = processSourceMaps(lines, rows, fetcher.mapForUri);
       done(result);
-    });
+    }, opts);
 
     if (isChrome()) {
       regex = /^ +at.+\((.*):([0-9]+):([0-9]+)/;
@@ -70,6 +74,12 @@ function(source_map_consumer) {
         }
       }
     }
+
+    // if opts.cacheGlobally set, all maps could have been cached already,
+    // thus we need to call done callback right away
+    if ( fetcher.sem === 0 ) {
+      fetcher.done(fetcher.mapForUri);
+    }
   };
 
   var isChrome = function() {
@@ -79,9 +89,9 @@ function(source_map_consumer) {
   var isFirefox = function() {
     return navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
   };
-  var Fetcher = function(done) {
+  var Fetcher = function(done, opts) {
     this.sem = 0;
-    this.mapForUri = {};
+    this.mapForUri = opts && opts.cacheGlobally ? global_mapForUri : {};
     this.done = done;
   };
 
