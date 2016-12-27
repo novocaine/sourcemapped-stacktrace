@@ -19,6 +19,8 @@ http://novocaine.github.io/sourcemapped-stacktrace-demo/public_html/smst.html
 npm install sourcemapped-stacktrace
 ```
 
+https://www.npmjs.com/package/sourcemapped-stacktrace
+
 The npm bundle contains dist/sourcemapped-stacktrace.js, if that's what you're
 after. The built product is not held in this repo.
 
