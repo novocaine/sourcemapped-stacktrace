@@ -134,7 +134,7 @@ function(source_map_consumer) {
         var embeddedSourceMap = mapUri.match("data:application/json;(charset=[^;]+;)?base64,(.*)");
 
         if (embeddedSourceMap && embeddedSourceMap[2]) {
-          this.mapForUri[uri] = atob(embeddedSourceMap[2]);
+          this.mapForUri[uri] = new source_map_consumer.SourceMapConsumer(atob(embeddedSourceMap[2]));
           this.done(this.mapForUri);
         } else {
           if (!absUrlRegex.test(mapUri)) {
@@ -157,7 +157,7 @@ function(source_map_consumer) {
               that.sem--;
               if (xhrMap.status === 200 ||
                 (mapUri.slice(0, 7) === "file://" && xhrMap.status === 0)) {
-                that.mapForUri[uri] = xhrMap.responseText;
+                that.mapForUri[uri] = new source_map_consumer.SourceMapConsumer(xhrMap.responseText);
               }
               if (that.sem === 0) {
                 that.done(that.mapForUri);
@@ -195,8 +195,7 @@ function(source_map_consumer) {
 
         if (map) {
           // we think we have a map for that uri. call source-map library
-          var smc = new source_map_consumer.SourceMapConsumer(map);
-          var origPos = smc.originalPositionFor(
+          var origPos = map.originalPositionFor(
             { line: line, column: column });
           result.push(formatOriginalPosition(origPos.source,
             origPos.line, origPos.column, origPos.name || origName(lines[i])));
