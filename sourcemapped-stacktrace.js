@@ -46,12 +46,12 @@ function(source_map_consumer) {
       done(result);
     }, opts);
 
-    if (isChrome()) {
+    if (isChromeOrEdge() || isIE11Plus()) {
       regex = /^ +at.+\((.*):([0-9]+):([0-9]+)/;
       expected_fields = 4;
       // (skip first line containing exception message)
       skip_lines = 1;
-    } else if (isFirefox()) {
+    } else if (isFirefox() || isSafari()) {
       regex = /@(.*):([0-9]+):([0-9]+)/;
       expected_fields = 4;
       skip_lines = 0;
@@ -82,13 +82,22 @@ function(source_map_consumer) {
     }
   };
 
-  var isChrome = function() {
+  var isChromeOrEdge = function() {
     return navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
   };
 
   var isFirefox = function() {
     return navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+  };  
+
+  var isSafari = function() {
+    return navigator.userAgent.toLowerCase().indexOf('safari') > -1;
   };
+		
+  var isIE11Plus = function() {
+   	return document.documentMode && document.documentMode >= 11;
+  };
+
   var Fetcher = function(done, opts) {
     this.sem = 0;
     this.mapForUri = opts && opts.cacheGlobally ? global_mapForUri : {};
@@ -215,7 +224,7 @@ function(source_map_consumer) {
   };
 
   function origName(origLine) {
-    var match = String(origLine).match(isChrome() ?
+    var match = String(origLine).match((isChromeOrEdge() || isIE11Plus()) ?
       / +at +([^ ]*).*/ :
       /([^@]*)@.*/);
     return match && match[1];
