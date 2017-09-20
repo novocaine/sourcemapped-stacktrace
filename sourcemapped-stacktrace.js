@@ -40,6 +40,7 @@ function(source_map_consumer) {
     var uri;
     var expected_fields;
     var regex;
+    var skip_lines;
 
     var fetcher = new Fetcher(function() {
       var result = processSourceMaps(lines, rows, fetcher.mapForUri);
