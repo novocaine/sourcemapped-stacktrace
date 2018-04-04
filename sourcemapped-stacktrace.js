@@ -42,10 +42,7 @@ function(source_map_consumer) {
     var regex;
     var skip_lines;
 
-    var fetcher = new Fetcher(function() {
-      var result = processSourceMaps(lines, rows, fetcher.mapForUri);
-      done(result);
-    }, opts);
+    var fetcher = new Fetcher(opts);
 
     if (isChromeOrEdge() || isIE11Plus()) {
       regex = /^ +at.+\((.*):([0-9]+):([0-9]+)/;
@@ -76,11 +73,10 @@ function(source_map_consumer) {
       }
     }
 
-    // if opts.cacheGlobally set, all maps could have been cached already,
-    // thus we need to call done callback right away
-    if ( fetcher.sem === 0 ) {
-      fetcher.done(fetcher.mapForUri);
-    }
+    fetcher.sem.whenReady(function() {
+      var result = processSourceMaps(lines, rows, fetcher.mapForUri);
+      done(result);
+    });
   };
 
   var isChromeOrEdge = function() {
@@ -99,15 +95,42 @@ function(source_map_consumer) {
    	return document.documentMode && document.documentMode >= 11;
   };
 
-  var Fetcher = function(done, opts) {
-    this.sem = 0;
+
+  var Semaphore = function() {
+    this.count = 0;
+    this.pending = [];
+  };
+
+  Semaphore.prototype.incr = function() {
+    this.count++;
+  };
+
+  Semaphore.prototype.decr = function() {
+    this.count--;
+    this.flush();
+  };
+
+  Semaphore.prototype.whenReady = function(fn) {
+    this.pending.push(fn);
+    this.flush();
+  };
+
+  Semaphore.prototype.flush = function() {
+    if (this.count === 0) {
+        this.pending.forEach(function(fn) { fn(); });
+        this.pending = [];
+    }
+  };
+
+
+  var Fetcher = function(opts) {
+    this.sem = new Semaphore();
     this.mapForUri = opts && opts.cacheGlobally ? global_mapForUri : {};
-    this.done = done;
   };
 
   Fetcher.prototype.fetchScript = function(uri) {
     if (!(uri in this.mapForUri)) {
-      this.sem++;
+      this.sem.incr();
       this.mapForUri[uri] = null;
     } else {
       return;
@@ -145,7 +168,7 @@ function(source_map_consumer) {
 
         if (embeddedSourceMap && embeddedSourceMap[2]) {
           this.mapForUri[uri] = new source_map_consumer.SourceMapConsumer(atob(embeddedSourceMap[2]));
-          this.done(this.mapForUri);
+          this.sem.decr();
         } else {
           if (!absUrlRegex.test(mapUri)) {
             // relative url; according to sourcemaps spec is 'source origin'
@@ -164,14 +187,11 @@ function(source_map_consumer) {
           var that = this;
           xhrMap.onreadystatechange = function() {
             if (xhrMap.readyState === 4) {
-              that.sem--;
               if (xhrMap.status === 200 ||
                 (mapUri.slice(0, 7) === "file://" && xhrMap.status === 0)) {
                 that.mapForUri[uri] = new source_map_consumer.SourceMapConsumer(xhrMap.responseText);
               }
-              if (that.sem === 0) {
-                that.done(that.mapForUri);
-              }
+              that.sem.decr();
             }
           };
 
@@ -180,15 +200,11 @@ function(source_map_consumer) {
         }
       } else {
         // no map
-        this.sem--;
+        this.sem.decr();
       }
     } else {
       // HTTP error fetching uri of the script
-      this.sem--;
-    }
-
-    if (this.sem === 0) {
-      this.done(this.mapForUri);
+      this.sem.decr();
     }
   };
 
