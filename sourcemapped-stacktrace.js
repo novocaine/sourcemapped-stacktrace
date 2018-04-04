@@ -30,6 +30,7 @@ function(source_map_consumer) {
    * @param {Function} [opts.filter] - Filter function applied to each stackTrace line.
    *                                   Lines which do not pass the filter won't be processesd.
    * @param {boolean} [opts.cacheGlobally] - Whether to cache sourcemaps globally across multiple calls.
+   * @param {boolean} [opts.sync] - Whether to use synchronous ajax to load the sourcemaps.
    */
   var mapStackTrace = function(stack, done, opts) {
     var lines;
@@ -125,6 +126,7 @@ function(source_map_consumer) {
 
   var Fetcher = function(opts) {
     this.sem = new Semaphore();
+    this.sync = opts && opts.sync;
     this.mapForUri = opts && opts.cacheGlobally ? global_mapForUri : {};
   };
 
@@ -136,7 +138,7 @@ function(source_map_consumer) {
         callback.call(that, xhr, uri);
       }
     };
-    xhr.open("GET", uri, true);
+    xhr.open("GET", uri, !this.sync);
     xhr.send();
   }
 
