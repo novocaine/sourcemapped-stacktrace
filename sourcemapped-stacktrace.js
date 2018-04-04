@@ -128,6 +128,18 @@ function(source_map_consumer) {
     this.mapForUri = opts && opts.cacheGlobally ? global_mapForUri : {};
   };
 
+  Fetcher.prototype.ajax = function(uri, callback) {
+    var xhr = createXMLHTTPObject();
+    var that = this;
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState == 4) {
+        callback.call(that, xhr, uri);
+      }
+    };
+    xhr.open("GET", uri, true);
+    xhr.send();
+  }
+
   Fetcher.prototype.fetchScript = function(uri) {
     if (!(uri in this.mapForUri)) {
       this.sem.incr();
@@ -136,30 +148,18 @@ function(source_map_consumer) {
       return;
     }
 
-    var xhr = createXMLHTTPObject();
-    var that = this;
-    xhr.onreadystatechange = function(e) {
-      that.onScriptLoad.call(that, e, uri);
-    };
-    xhr.open("GET", uri, true);
-    xhr.send();
+    this.ajax(uri, this.onScriptLoad);
   };
 
   var absUrlRegex = new RegExp('^(?:[a-z]+:)?//', 'i');
 
-  Fetcher.prototype.onScriptLoad = function(e, uri) {
-    if (e.target.readyState !== 4) {
-      return;
-    }
-
-    if (e.target.status === 200 ||
-      (uri.slice(0, 7) === "file://" && e.target.status === 0))
-    {
+  Fetcher.prototype.onScriptLoad = function(xhr, uri) {
+    if (xhr.status === 200 || (uri.slice(0, 7) === "file://" && xhr.status === 0)) {
       // find .map in file.
       //
       // attempt to find it at the very end of the file, but tolerate trailing
       // whitespace inserted by some packers.
-      var match = e.target.responseText.match("//# [s]ourceMappingURL=(.*)[\\s]*$", "m");
+      var match = xhr.responseText.match("//# [s]ourceMappingURL=(.*)[\\s]*$", "m");
       if (match && match.length === 2) {
         // get the map
         var mapUri = match[1];
@@ -183,20 +183,12 @@ function(source_map_consumer) {
             }
           }
 
-          var xhrMap = createXMLHTTPObject();
-          var that = this;
-          xhrMap.onreadystatechange = function() {
-            if (xhrMap.readyState === 4) {
-              if (xhrMap.status === 200 ||
-                (mapUri.slice(0, 7) === "file://" && xhrMap.status === 0)) {
-                that.mapForUri[uri] = new source_map_consumer.SourceMapConsumer(xhrMap.responseText);
-              }
-              that.sem.decr();
+          this.ajax(mapUri, function(xhr) {
+            if (xhr.status === 200 || (mapUri.slice(0, 7) === "file://" && xhr.status === 0)) {
+              this.mapForUri[uri] = new source_map_consumer.SourceMapConsumer(xhr.responseText);
             }
-          };
-
-          xhrMap.open("GET", mapUri, true);
-          xhrMap.send();
+            this.sem.decr();
+          });
         }
       } else {
         // no map
