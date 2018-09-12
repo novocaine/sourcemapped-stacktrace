@@ -20,9 +20,7 @@ function(source_map_consumer) {
   /**
    * Re-map entries in a stacktrace using sourcemaps if available.
    *
-   * @param {Array} stack - Array of strings from the browser's stack
-   *                        representation. Currently only Chrome
-   *                        format is supported.
+   * @param {str} stack - The stacktrace from the browser.
    * @param {function} done - Callback invoked with the transformed stacktrace
    *                          (an Array of Strings) passed as the first
    *                          argument
