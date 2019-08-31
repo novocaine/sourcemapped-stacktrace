@@ -29,6 +29,10 @@ function(source_map_consumer) {
    *                                   Lines which do not pass the filter won't be processesd.
    * @param {boolean} [opts.cacheGlobally] - Whether to cache sourcemaps globally across multiple calls.
    * @param {boolean} [opts.sync] - Whether to use synchronous ajax to load the sourcemaps.
+   * @param {string} [opts.traceFormat] - If `error.stack` is formatted according to chrome or
+   *                                      Firefox's style.  Can be either `"chrome"`, `"firefox"`
+   *                                      or `undefined` (default).  If `undefined`, this library
+   *                                      will guess based on `navigator.userAgent`.
    */
   var mapStackTrace = function(stack, done, opts) {
     var lines;
@@ -43,17 +47,28 @@ function(source_map_consumer) {
 
     var fetcher = new Fetcher(opts);
 
-    if (isChromeOrEdge() || isIE11Plus()) {
+    var traceFormat = opts && opts.traceFormat;
+    if (traceFormat !== "chrome" && traceFormat !== "firefox") {
+      if (traceFormat) {
+        throw new Error("unknown traceFormat \"" + traceFormat + "\" :(");
+      } else if (isChromeOrEdge() || isIE11Plus()) {
+        traceFormat = "chrome";
+      } else if (isFirefox() || isSafari()) {
+        traceFormat = "firefox";
+      } else {
+        throw new Error("unknown browser :(");
+      }
+    }
+
+    if (traceFormat === "chrome") {
       regex = /^ +at.+\((.*):([0-9]+):([0-9]+)/;
       expected_fields = 4;
       // (skip first line containing exception message)
       skip_lines = 1;
-    } else if (isFirefox() || isSafari()) {
+    } else {
       regex = /@(.*):([0-9]+):([0-9]+)/;
       expected_fields = 4;
       skip_lines = 0;
-    } else {
-      throw new Error("unknown browser :(");
     }
 
     lines = stack.split("\n").slice(skip_lines);
@@ -73,7 +88,7 @@ function(source_map_consumer) {
     }
 
     fetcher.sem.whenReady(function() {
-      var result = processSourceMaps(lines, rows, fetcher.mapForUri);
+      var result = processSourceMaps(lines, rows, fetcher.mapForUri, traceFormat);
       done(result);
     });
   };
@@ -200,9 +215,10 @@ function(source_map_consumer) {
     }
   };
 
-  var processSourceMaps = function(lines, rows, mapForUri) {
+  var processSourceMaps = function(lines, rows, mapForUri, traceFormat) {
     var result = [];
     var map;
+    var origName = traceFormat === "chrome" ? origNameChrome : origNameFirefox;
     for (var i=0; i < lines.length; i++) {
       var row = rows[i];
       if (row) {
@@ -232,10 +248,13 @@ function(source_map_consumer) {
     return result;
   };
 
-  function origName(origLine) {
-    var match = String(origLine).match((isChromeOrEdge() || isIE11Plus()) ?
-      / +at +([^ ]*).*/ :
-      /([^@]*)@.*/);
+  function origNameChrome(origLine) {
+    var match = / +at +([^ ]*).*/.exec(origLine);
+    return match && match[1];
+  }
+
+  function origNameFirefox(origLine) {
+    var match = /([^@]*)@.*/.exec(origLine);
     return match && match[1];
   }
 
