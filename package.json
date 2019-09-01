@@ -8,9 +8,6 @@
     "email": "iteration@gmail.com"
   },
   "main": "dist/sourcemapped-stacktrace.js",
-  "files": [
-    "index.d.ts"
-  ],
   "description": "A simple module for applying source maps to JS stack traces in the browser.",
   "dependencies": {
     "source-map": "0.5.6"
